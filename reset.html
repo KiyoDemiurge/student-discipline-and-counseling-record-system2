@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reset Password</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #eef2f3;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .reset-container {
+            width: 350px;
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 0 12px rgba(0,0,0,0.12);
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 18px;
+        }
+
+        input, button {
+            width: 100%;
+            padding: 10px;
+            margin-top: 10px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+        }
+
+        button {
+            background: #0A3D62;
+            color: white;
+            border: none;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 15px;
+        }
+
+        button:hover {
+            background: #46a049;
+        }
+
+        .back-btn {
+            background: #2196F3;
+            margin-top: 10px;
+        }
+
+        .back-btn:hover {
+            background: #0b7dda;
+        }
+
+        #message {
+            text-align: center;
+            font-size: 14px;
+            margin-top: 12px;
+        }
+
+        .error {
+            color: red;
+        }
+
+        .success {
+            color: #0A3D62;
+        }
+        .links {
+            margin-top: 10px;
+            text-align: center;
+        }
+    </style>
+
+</head>
+<body>
+
+<div class="reset-container">
+    <h2>Reset Password</h2>
+
+    <input type="email" id="email" placeholder="Enter your registered email" required>
+
+    <input type="password" id="newpass" placeholder="New Password" required>
+
+    <input type="password" id="renewpass" placeholder="Re-enter New Password" required>
+
+    <button onclick="resetPassword()">Reset Password</button>
+
+   <div class="links">
+            <a href="login.html">Back to Login</a>
+           
+        </div>
+
+    <p id="message"></p>
+</div>
+
+<script>
+function resetPassword() {
+    const email = document.getElementById("email").value.trim();
+    const newpass = document.getElementById("newpass").value;
+    const renewpass = document.getElementById("renewpass").value;
+    const msg = document.getElementById("message");
+    
+    msg.textContent = "";
+    msg.className = "";
+
+    if (!email || !newpass || !renewpass) {
+        msg.textContent = "Please fill out all fields.";
+        msg.className = "error";
+        return;
+    }
+
+    if (!localStorage.getItem(email)) {
+        msg.textContent = "Email not found.";
+        msg.className = "error";
+        return;
+    }
+
+    if (newpass !== renewpass) {
+        msg.textContent = "Passwords do not match.";
+        msg.className = "error";
+        return;
+    }
+
+    // Get existing user data
+    let userData = JSON.parse(localStorage.getItem(email));
+    userData.password = newpass; // update password only
+
+    localStorage.setItem(email, JSON.stringify(userData));
+
+    msg.textContent = "Password successfully reset!";
+    msg.className = "success";
+
+    setTimeout(() => {
+        window.location.href = "login.html";
+    }, 1500);
+}
+</script>
+
+</body>
+</html>

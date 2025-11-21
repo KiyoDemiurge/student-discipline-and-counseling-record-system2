@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile Dashboard</title>
+
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background: #eef1f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .profile-box {
+            width: 400px;
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0px 0px 10px rgba(0,0,0,0.15);
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .info-box {
+            padding: 12px;
+            background: #f8f8f8;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        .label {
+            font-weight: bold;
+            color: #444;
+        }
+
+        input {
+            width: 100%;
+            padding: 10px;
+            margin-top: 8px;
+            margin-bottom: 12px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            background: #0a3d62;
+            color: white;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 15px;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            background: #083558;
+        }
+
+        .logout-btn {
+            background: #e63946;
+        }
+
+        .logout-btn:hover {
+            background: #cc2f3b;
+        }
+    </style>
+</head>
+<body>
+
+<div class="profile-box">
+    <h2>My Profile</h2>
+
+    <div class="info-box">
+        <p><span class="label">Name:</span> <span id="profileName"></span></p>
+        <p><span class="label">Email:</span> <span id="profileEmail"></span></p>
+        <p><span class="label">Role:</span> <span id="profileRole"></span></p>
+    </div>
+
+    <h3>Edit Profile</h3>
+
+    <input type="text" id="newName" placeholder="Enter new name">
+    <input type="password" id="newPass" placeholder="Enter new password">
+    <input type="password" id="rePass" placeholder="Re-enter new password">
+
+    <button onclick="updateProfile()">Save Changes</button>
+    <button class="logout-btn" onclick="logout()">Logout</button>
+    <button onclick="goBack()">Back to Dashboard</button>
+
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const currentEmail = localStorage.getItem("currentUser");
+    if (!currentEmail) window.location.href = "login.html";
+
+    const user = JSON.parse(localStorage.getItem(currentEmail));
+
+    // Display Profile Information
+    document.getElementById("profileName").textContent = user.name;
+    document.getElementById("profileEmail").textContent = user.email;
+    document.getElementById("profileRole").textContent = user.role;
+});
+
+function updateProfile() {
+    const currentEmail = localStorage.getItem("currentUser");
+    const user = JSON.parse(localStorage.getItem(currentEmail));
+
+    const newName = document.getElementById("newName").value.trim();
+    const newPass = document.getElementById("newPass").value.trim();
+    const rePass = document.getElementById("rePass").value.trim();
+
+    if (newPass !== "" && newPass !== rePass) {
+        alert("Passwords do not match!");
+        return;
+    }
+
+    if (newName !== "") user.name = newName;
+    if (newPass !== "") user.password = newPass;
+
+    localStorage.setItem(user.email, JSON.stringify(user));
+
+    alert("Profile updated successfully!");
+    window.location.reload();
+}
+
+function logout() {
+    localStorage.removeItem("currentUser");
+    window.location.href = "login.html";
+}
+
+function goBack() {
+    const currentEmail = localStorage.getItem("currentUser");
+    const user = JSON.parse(localStorage.getItem(currentEmail));
+
+    if (user.role === "admin") {
+        window.location.href = "admin_dashboard.html";
+    } else {
+        window.location.href = "user_dashboard.html";
+    }
+}
+</script>
+
+</body>
+</html>

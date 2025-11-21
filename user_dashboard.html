@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>User Dashboard</title>
+<style>
+body { font-family: Arial; background:#eef1f5; margin:0; padding:0; }
+.navbar { background:#1e2a78; color:#fff; padding:15px; display:flex; justify-content:space-between; }
+.container { width:80%; margin:30px auto; background:#fff; padding:20px; border-radius:10px; }
+table { width:100%; border-collapse: collapse; margin-top:15px; }
+table th, table td { padding:12px; border-bottom:1px solid #ddd; }
+table th { background:#1e2a78; color:#fff; }
+button { padding:8px 12px; border:none; border-radius:5px; cursor:pointer; }
+.btn-add { background:#28a745; color:#fff; }
+.btn-edit { background:#ffc107; color:#000; }
+.btn-delete { background:#dc3545; color:#fff; }
+.btn-logout { background:#f44336; color:#fff; }
+.modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); justify-content:center; align-items:center; }
+.modal-content { background:#fff; padding:20px; width:30%; border-radius:10px; }
+input, select, textarea { width:100%; padding:8px; margin:5px 0 10px; }
+.btn-close { float:right; background:#333; color:#fff; }
+.btn-profile {
+    padding: 8px 12px;
+    border: none;
+    cursor: pointer;
+    border-radius: 6px;
+    background: #1e90ff;
+    color: white;
+    margin-right: 8px;
+}
+
+.btn-profile:hover {
+    background: #0b70d0;
+}
+/* Dark mode styles */
+body.dark-mode {
+    background-color: #121212;
+    color: #e0e0e0;
+}
+
+body.dark-mode .container {
+    background-color: #1e1e1e;
+    color: #e0e0e0;
+}
+
+body.dark-mode table th {
+    background-color: #333;
+    color: #fff;
+}
+
+body.dark-mode table td {
+    border-bottom: 1px solid #555;
+}
+
+body.dark-mode .navbar {
+    background-color: #1a1a1a;
+    color: #fff;
+}
+
+body.dark-mode input,
+body.dark-mode select,
+body.dark-mode textarea {
+    background-color: #2b2b2b;
+    color: #e0e0e0;
+    border: 1px solid #555;
+}
+
+body.dark-mode button {
+    color: white;
+}
+
+body.dark-mode .btn-profile { background-color: #0d6efd; }
+body.dark-mode .btn-profile:hover { background-color: #0a58ca; }
+body.dark-mode .btn-logout { background-color: #e63946; }
+body.dark-mode .btn-logout:hover { background-color: #cc2f3b; }
+body.dark-mode .btn-add { background-color: #28a745; }
+body.dark-mode .btn-add:hover { background-color: #218838; }
+
+.btn-settings {
+    padding: 8px 12px;
+    border: none;
+    cursor: pointer;
+    border-radius: 6px;
+    background: #0a3d62;
+    color: white;
+    margin-right: 8px;
+}
+
+.btn-settings:hover {
+    background: #5a6268;
+}
+
+</style>
+</head>
+<body>
+
+<div class="navbar">
+    <h2>User Dashboard</h2>
+    <div>
+        <button class="btn-settings" onclick="openSettings()">⚙️ Settings</button>
+        <button class="btn-toggle" id="darkModeToggle">🌙 Dark Mode</button>
+        <button class="btn-profile" onclick="window.location.href='profile.html'">Profile</button>
+        <button class="btn-logout" onclick="logout()">Logout</button>
+    </div>
+</div>
+
+
+
+<div class="container">
+    <h3>Counseling Records</h3>
+    <button class="btn-add" onclick="openModal()">+ Add Record</button>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Student</th>
+                <th>Type</th>
+                <th>Description</th>
+                <th>Date</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody id="recordsTable"></tbody>
+    </table>
+</div>
+
+<!-- Modal for Add/Edit -->
+<div class="modal" id="recordModal">
+    <div class="modal-content">
+        <button class="btn-close" onclick="closeModal()">X</button>
+        <h3 id="modalTitle">Add Record</h3>
+        <input type="hidden" id="recordId">
+        <label>Student Name</label>
+        <input type="text" id="studentName">
+        <label>Counseling Type</label>
+        <select id="counselingType">
+            <option value="Behavioral">Behavioral</option>
+            <option value="Academic">Academic</option>
+            <option value="Emotional">Emotional</option>
+            <option value="Career">Career</option>
+            <option value="Family">Family</option>
+        </select>
+        <label>Description</label>
+        <textarea id="description" rows="3"></textarea>
+        <label>Date</label>
+        <input type="date" id="date">
+        <button class="btn-add" onclick="saveRecord()">Save</button>
+    </div>
+</div>
+
+<script>
+let records = JSON.parse(localStorage.getItem("records") || "[]");
+const currentUser = localStorage.getItem("currentUser");
+
+function renderTable() {
+    const table = document.getElementById("recordsTable");
+    table.innerHTML = "";
+
+    // Show only records created by this user
+    const userRecords = records.filter(r => r.createdBy === currentUser);
+
+    userRecords.forEach((rec, index) => {
+        table.innerHTML += `
+            <tr>
+                <td>${rec.student}</td>
+                <td>${rec.type}</td>
+                <td>${rec.description}</td>
+                <td>${rec.date}</td>
+                <td>
+                    <button class="btn-edit" onclick="editRecord(${index})">Edit</button>
+                    <button class="btn-delete" onclick="deleteRecord(${index})">Delete</button>
+                </td>
+            </tr>
+        `;
+    });
+}
+
+// Open modal for Add
+function openModal(){
+    document.getElementById("recordId").value = "";
+    document.getElementById("studentName").value = "";
+    document.getElementById("counselingType").value = "Behavioral";
+    document.getElementById("description").value = "";
+    document.getElementById("date").value = "";
+    document.getElementById("modalTitle").innerText = "Add Record";
+    document.getElementById("recordModal").style.display = "flex";
+}
+
+// Close modal
+function closeModal(){
+    document.getElementById("recordModal").style.display = "none";
+}
+
+// Save record (Add/Edit)
+function saveRecord(){
+    const id = document.getElementById("recordId").value;
+    const student = document.getElementById("studentName").value.trim();
+    const type = document.getElementById("counselingType").value;
+    const description = document.getElementById("description").value.trim();
+    const date = document.getElementById("date").value;
+
+    if(!student || !description || !date){
+        alert("All fields are required.");
+        return;
+    }
+
+    const record = { student, type, description, date, createdBy: currentUser };
+
+    if(id === ""){
+        records.push(record);
+    } else {
+        // Find correct index in full records array
+        const allIndex = records.findIndex((r, i) => r.createdBy === currentUser && i === parseInt(id));
+        records[allIndex] = record;
+    }
+
+    localStorage.setItem("records", JSON.stringify(records));
+    closeModal();
+    renderTable();
+}
+
+// Edit record
+function editRecord(index){
+    const userRecords = records.filter(r => r.createdBy === currentUser);
+    const rec = userRecords[index];
+
+    // Find global index
+    const globalIndex = records.findIndex(r => r === rec);
+
+    document.getElementById("recordId").value = globalIndex;
+    document.getElementById("studentName").value = rec.student;
+    document.getElementById("counselingType").value = rec.type;
+    document.getElementById("description").value = rec.description;
+    document.getElementById("date").value = rec.date;
+    document.getElementById("modalTitle").innerText = "Edit Record";
+    document.getElementById("recordModal").style.display = "flex";
+}
+
+// Delete record
+function deleteRecord(index){
+    const userRecords = records.filter(r => r.createdBy === currentUser);
+    const rec = userRecords[index];
+
+    if(confirm("Are you sure you want to delete this record?")){
+        const globalIndex = records.findIndex(r => r === rec);
+        records.splice(globalIndex, 1);
+        localStorage.setItem("records", JSON.stringify(records));
+        renderTable();
+    }
+}
+// DARK MODE TOGGLE
+const darkModeToggle = document.getElementById("darkModeToggle");
+
+function setDarkMode(enabled) {
+    if (enabled) {
+        document.body.classList.add("dark-mode");
+        localStorage.setItem("darkMode", "enabled");
+        darkModeToggle.textContent = "☀️ Light Mode";
+    } else {
+        document.body.classList.remove("dark-mode");
+        localStorage.setItem("darkMode", "disabled");
+        darkModeToggle.textContent = "🌙 Dark Mode";
+    }
+}
+
+// Initialize dark mode from localStorage
+if (localStorage.getItem("darkMode") === "enabled") {
+    setDarkMode(true);
+} else {
+    setDarkMode(false);
+}
+
+// Toggle dark mode on button click
+darkModeToggle.addEventListener("click", () => {
+    const isDark = document.body.classList.contains("dark-mode");
+    setDarkMode(!isDark);
+});
+
+
+// Logout
+function logout(){
+    localStorage.removeItem("currentUser");
+    window.location.href="login.html";
+}
+function openSettings() {
+    const email = localStorage.getItem("currentUser");
+    const user = JSON.parse(localStorage.getItem(email));
+
+    document.getElementById("settingsName").value = user.name;
+    document.getElementById("settingsEmail").value = user.email;
+    document.getElementById("settingsPassword").value = "";
+    document.getElementById("settingsConfirmPassword").value = "";
+    document.getElementById("settingsDarkMode").value = localStorage.getItem("darkMode") || "disabled";
+
+    document.getElementById("settingsModal").style.display = "flex";
+}
+
+function closeSettings() {
+    document.getElementById("settingsModal").style.display = "none";
+}
+
+function saveSettings() {
+    const email = localStorage.getItem("currentUser");
+    const user = JSON.parse(localStorage.getItem(email));
+
+    const newName = document.getElementById("settingsName").value.trim();
+    const newEmail = document.getElementById("settingsEmail").value.trim();
+    const newPassword = document.getElementById("settingsPassword").value;
+    const confirmPassword = document.getElementById("settingsConfirmPassword").value;
+    const darkMode = document.getElementById("settingsDarkMode").value;
+
+    if(newName === "" || newEmail === "") {
+        alert("Name and Email cannot be empty!");
+        return;
+    }
+
+    if(newPassword !== confirmPassword) {
+        alert("Passwords do not match!");
+        return;
+    }
+
+    // Update user info
+    user.name = newName;
+    user.email = newEmail;
+    if(newPassword) user.password = newPassword;
+
+    localStorage.setItem(newEmail, JSON.stringify(user));
+    if(email !== newEmail) localStorage.removeItem(email);
+    localStorage.setItem("currentUser", newEmail);
+
+    // Update dark mode
+    localStorage.setItem("darkMode", darkMode);
+    if(darkMode === "enabled") document.body.classList.add("dark-mode");
+    else document.body.classList.remove("dark-mode");
+
+    alert("Settings updated!");
+    closeSettings();
+}
+
+
+// Initial render
+renderTable();
+</script>
+<div class="modal" id="settingsModal">
+    <div class="modal-content">
+        <button class="btn-close" onclick="closeSettings()">X</button>
+        <h3>Settings</h3>
+
+        <label>Change Name</label>
+        <input type="text" id="settingsName">
+
+        <label>Change Email</label>
+        <input type="email" id="settingsEmail">
+
+        <label>Change Password</label>
+        <input type="password" id="settingsPassword">
+
+        <label>Confirm Password</label>
+        <input type="password" id="settingsConfirmPassword">
+
+        <label>Dark Mode</label>
+        <select id="settingsDarkMode">
+            <option value="enabled">Enabled</option>
+            <option value="disabled">Disabled</option>
+        </select>
+
+        <button class="btn-add" onclick="saveSettings()">Save Settings</button>
+    </div>
+</div>
+
+</body>
+</html>

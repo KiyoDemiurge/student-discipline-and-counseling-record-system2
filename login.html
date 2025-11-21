@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #eef2f3;
+            height: 100vh;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .login-container {
+            width: 500px;
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 0 12px rgba(0,0,0,0.15);
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 18px;
+            color: #333;
+        }
+
+        input, button {
+            width: 95%;
+            padding: 10px;
+            margin-top: 12px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+            font-size: 15px;
+        }
+
+        button {
+            width: 95%;
+            background: #0a3d62;
+            color: white;
+            border: none;
+            cursor: pointer;
+            margin-top: 15px;
+        }
+
+        button:hover {
+            background: #07406e;
+        }
+
+        .link-btn {
+            background: #2196F3;
+            margin-top: 8px;
+        }
+
+        .link-btn:hover {
+            background: #0f75c8;
+        }
+
+        #message {
+            text-align: center;
+            font-size: 14px;
+            margin-top: 12px;
+        }
+         .links {
+            margin-top: 10px;
+            text-align: center;
+        }
+
+        .error { color: red; }
+    </style>
+</head>
+<body>
+
+<div class="login-container">
+    <h2>Login</h2>
+
+    <input type="email" id="email" placeholder="Email" required>
+    <input type="password" id="password" placeholder="Password" required>
+
+    <button onclick="login()">Login</button>
+
+    <div class="links">
+            <a href="signup.html">Create Account</a><br>
+            <a href="reset.html">Forgot Password?</a>
+           
+        </div>
+
+    <p id="message"></p>
+</div>
+
+<script>
+function login() {
+    const email = document.getElementById("email").value.trim();
+    const pass = document.getElementById("password").value;
+    const msg = document.getElementById("message");
+
+    msg.textContent = "";
+    msg.className = "";
+
+    if (!email || !pass) {
+        msg.textContent = "Please enter both email and password.";
+        msg.className = "error";
+        return;
+    }
+
+    const userData = localStorage.getItem(email);
+    if (!userData) {
+        msg.textContent = "Account not found.";
+        msg.className = "error";
+        return;
+    }
+
+    const user = JSON.parse(userData);
+
+    if (user.password !== pass) {
+        msg.textContent = "Incorrect password.";
+        msg.className = "error";
+        return;
+    }
+
+    // Save session
+    localStorage.setItem("currentUser", email);
+
+    // Redirect based on role
+    if (user.role === "admin") {
+        window.location.href = "admin_dashboard.html";
+    } else {
+        window.location.href = "user_dashboard.html";
+    }
+}
+</script>
+
+</body>
+</html>
